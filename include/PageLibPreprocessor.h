@@ -28,7 +28,7 @@ private:
     
     //网页偏移库
     //<docid,<pos,length>>
-    //unordered_map<int,pair<int,int>> _offsetLib;    
+    unordered_map<int,pair<int,int>> _offsetLib;    
 
     //网页库
 

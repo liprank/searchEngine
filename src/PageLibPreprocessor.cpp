@@ -56,7 +56,7 @@ PageLibPreprocessor::PageLibPreprocessor()
 void PageLibPreprocessor::doProcess() {
 	RssReader reader;
 	reader.parseRss();             
-	reader.dump("../data/webpage.dat");
+	reader.dump("../data/webpage.dat","../data/offset.dat");
     return;
 }
 
