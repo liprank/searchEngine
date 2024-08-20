@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -15,6 +16,7 @@
 using std::string;
 using std::map;
 using std::set;
+using std::vector;
 using std::ifstream;
 using std::istringstream;
 using std::cerr;
@@ -49,5 +51,22 @@ private:
 	static Configuration* _pInstance;
 };
 
-Configuration* Configuration::_pInstance = nullptr;
+
+//输入为目录名，输出为目录中的所有文件
+class DirScanner{
+private:
+    //用于存储目录中所有的文件绝对路径
+    vector<string> _files;
+
+public:
+    //用于返回_files
+    vector<string> &getFiles();
+
+    //用于传递所有文件
+    void traverse(string dir);
+
+	//用于清空_files
+	void clean();
+};
+
 #endif //_CONFIGURATION_H

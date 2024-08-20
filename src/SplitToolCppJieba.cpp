@@ -8,11 +8,11 @@
 //#include "../include/DictProducer.h"
 
 using namespace std;
-const char* const DICT_PATH = "../conf/dict/jieba.dict.utf8";
-const char* const HMM_PATH = "../conf/dict/hmm_model.utf8";
-const char* const USER_DICT_PATH = "../conf/dict/user.dict.utf8";
-const char* const IDF_PATH = "../conf/dict/idf.utf8";
-const char* const STOP_WORD_PATH = "../conf/dict/stop_words.utf8";
+const char* const DICT_PATH = "../conf/dictjieba/jieba.dict.utf8";
+const char* const HMM_PATH = "../conf/dictjieba/hmm_model.utf8";
+const char* const USER_DICT_PATH = "../conf/dictjieba/user.dict.utf8";
+const char* const IDF_PATH = "../conf/dictjieba/idf.utf8";
+const char* const STOP_WORD_PATH = "../conf/dictjieba/stop_words.utf8";
 
 /**
  * SplitToolCppJieba implementation
@@ -36,9 +36,9 @@ vector<string> SplitToolCppJieba::cut(string sentence) {
 	vector<string> words;
 
     jieba.Cut(sentence, words, true);
-    for(auto word : words){
-        cout << "word = " << word << "\n";
-    }
+    // for(auto word : words){
+    //     cout << "word = " << word << "\n";
+    // }
 
 	return words;
 }

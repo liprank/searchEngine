@@ -31,23 +31,24 @@ public:
  */
 
 //英文
-DictProducer(const string &);
+DictProducer();
 //中文
-DictProducer(const string &,SplitTool*);
+DictProducer(SplitTool*);
 
 ~DictProducer();
 
-void buildEnDict();
+void buildEnDict(const string &);
     
-void buildCnDict();
+void buildCnDict(const string &);
     
 //创建索引
 void createIndex();
-    
-void store();
+
+//存储索引库  
+void store(const string &indexfile);
 
 private: 
-	//存放多个要读取的文件
+	//存放多个要读取的文件,这个通过配置文件来读取
     vector<string> _files;
 	//词典
     vector<pair<string,int>> _dict;

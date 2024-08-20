@@ -4,6 +4,8 @@
 
 #include "../include/SplitToolCppJieba.h"
 #include "../include/DictProducer.h"
+#include "../include/Configuration.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -22,79 +24,104 @@ using std::endl;
  * DictProducer implementation
  */
 
+map<string,string> configmap;
+DirScanner dirscanner;
 
 /**
  * @param string
  * @param tool
  */
-DictProducer::DictProducer(const string & filepath,SplitTool* t) 
+DictProducer::DictProducer(SplitTool* t) 
 //基类的指针指向派生类对象，进行重载
 :_cuttor(t)
 {
-	_files.push_back(filepath);
-	
-	buildCnDict();
+	//读取中文语料库，写入_files当中
+	dirscanner.traverse(configmap["wordsLibCNDir"]);
+	// if(!_files.empty()){
+	// 	//清空_files并释放内存
+	// 	vector<string>().swap(_files);
+	// }
+
+	_files = dirscanner.getFiles();
+	dirscanner.clean();
+
+	buildCnDict(configmap["wordsCNdict"]);
 	createIndex();
-	store();
+	store(configmap["wordsCNindex"]);
+
 }
 
-DictProducer::DictProducer(const string & filepath){
-	_files.push_back(filepath);
-	buildEnDict();
+//默认构造函数
+DictProducer::DictProducer(){
+	//读取英文语料库，写入_files当中
+	//注意要清空dirscanner中的文件
+	dirscanner.traverse(configmap["wordsLibENDir"]);
+	_files = dirscanner.getFiles();
+	dirscanner.clean();
+
+for(string files : _files){
+	cout << files << endl;
+}
+
+	buildEnDict(configmap["wordsENdict"]);
 	createIndex();
-	store();
+	store(configmap["wordsENindex"]);
 }
 
 DictProducer::~DictProducer(){
+
 }
 
 /**
  * @return void
  * 生成英文词典
  */
-void DictProducer::buildEnDict() {
+void DictProducer::buildEnDict(const string &dictfileEN) {
 	//英文词典
 	//读取文件，清洗写入
-	string filepath = _files.back();	
-	_files.pop_back();
-	
-	ifstream files(filepath); 
-	if(!files.is_open()){
-		cerr << "open file failed\n";
-	}
-			
-	string line;
 	int num = 0;
 	map<string,int> wordFq;//统计词频
-	while(getline(files,line)){
-		//清洗文件
-		for(char &ch : line){
-			if(isalpha(ch)){
-				tolower(ch);
-			}
-			else if(isalnum(ch)){
-				ch = ' ';
-			}
-			else if(ispunct(ch)){
-				ch = ' ';
-			}
-			else if(ch == '\n' || ch == '\r'){
-				ch = ' ';
-			}
-		}
-		
-		istringstream iss(line);
-		string word;
-		while(iss >> word){
-			wordFq[word]++;
+
+	while(!_files.empty()){
+		string filepath = _files.back();	
+		_files.pop_back();
+
+		ifstream files(filepath); 
+		if(!files.is_open()){
+			cerr << "open file failed\n";
 		}
 
-		//TODO:erase remove的用法
+		string line;
+		while(getline(files,line)){
+			//清洗文件
+			for(char &ch : line){
+				if(isalpha(ch)){
+					tolower(ch);
+				}
+				else if(isalnum(ch)){
+					ch = ' ';
+				}
+				else if(ispunct(ch)){
+					ch = ' ';
+				}
+				else if(ch == '\n' || ch == '\r'){
+					ch = ' ';
+				}
+			}
+
+			istringstream iss(line);
+			string word;
+			while(iss >> word){
+				wordFq[word]++;
+			}
+
+			//TODO:erase remove的用法
+		}
 	}
 
 	//根据词频顺序来放入词典中,而不是原来的顺序
 	//存储英文字典
-	ofstream ofs("../data/enWordDict.dat");
+	ofstream ofs(dictfileEN);
 	for(auto elem : wordFq){
 		ofs << elem.first << " " << num << "\n";
 		_dict.push_back(make_pair(elem.first,num++));	
@@ -108,35 +135,38 @@ void DictProducer::buildEnDict() {
  * @return void
  * 创建中文词典
  */
-void DictProducer::buildCnDict() {
-	//打开文件
-	string filepath = _files.back();	
-	_files.pop_back();
-	
-	ifstream ifs(filepath); 
-	if(!ifs.is_open()){
-		cerr << "open file failed\n";
-	}
-	
-	//一次读取全部文件
-	int num = 0;
+void DictProducer::buildCnDict(const string & dictfileCN) {
+	//打开文件,读入语料库
+
 	map<string,int> wordFq;//统计词频
-	ifs.seekg(0,std::ios::end);
-	size_t length = ifs.tellg();
-	ifs.seekg(0,std::ios::beg);
-	char *pdata = new char[length+1]();
-	ifs.read(pdata,length);
+	int num = 0;
+	while(!_files.empty()){
+		string filepath = _files.back();	
+		_files.pop_back();
+		ifstream ifs(filepath); 
+		if(!ifs.is_open()){
+			cerr << "open file failed\n";
+		}
 
-	string str(pdata);
-	str.erase(remove_if(str.begin(),str.end(),[](char c){
-		return isspace(c);
-	}));
+		//一次读取全部文件
+		ifs.seekg(0,std::ios::end);
+		size_t length = ifs.tellg();
+		ifs.seekg(0,std::ios::beg);
+		char *pdata = new char[length+1]();
+		ifs.read(pdata,length);
 
-	vector<string> temp = _cuttor->cut(str);	
-	for(string word : temp){
-		wordFq[word]++;
-	}
+		string str(pdata);
+		str.erase(remove_if(str.begin(),str.end(),[](char c){
+			return isspace(c);
+		}));
+
+		vector<string> temp = _cuttor->cut(str);	
+		for(string word : temp){
+			wordFq[word]++;
+		}
 	
+	}	
+
 	//while(getline(ifs,line)){
 	//	//清洗文件,消除换行符
 	//	//line.erase(remove_if(line.begin(),line.end(),[](char c){
@@ -152,7 +182,7 @@ void DictProducer::buildCnDict() {
 	//}	
 
 	//基类指针指向派生类对象，所以会调用虚函数
-	ofstream ofs("../data/cnWordDict.dat");
+	ofstream ofs(dictfileCN);
 	for(auto elem : wordFq){
 		ofs << elem.first << " " << num << "\n";
 		_dict.push_back(make_pair(elem.first,num++));	
@@ -181,7 +211,6 @@ void DictProducer::createIndex() {
 				temp = word.substr(i,3);
 				i += 3;
 			}
-cout << temp << endl;
 			_index[temp].insert(index); 
 		}
 	}
@@ -191,9 +220,9 @@ cout << temp << endl;
 /**
  * @return void
  */
-void DictProducer::store() {
+void DictProducer::store(const string & indexfile) {
 	//附加模式打开文件
-	ofstream ofs("../data/dictIndex.dat",std::ios::app);
+	ofstream ofs(indexfile,std::ios::app);
 	if(!ofs.is_open()){
 		cerr << "open file failed\n";
 	}
@@ -212,14 +241,24 @@ void DictProducer::store() {
 }
 
 SplitToolCppJieba* SplitToolCppJieba::_pInstance = nullptr;
+Configuration* Configuration::_pInstance = nullptr;
+
 int main(){
+	//读取配置文件
+	Configuration* config = Configuration::getInstance();
+	configmap = config->getConfigMap();
+
+	//通过配置文件来读取语料库文件
+	//放入_files当中
+
+
 	//基类的指针，指向派生类的对象
 	//单例模式,类一加载就提前占用系统资源
 	SplitTool* t = SplitToolCppJieba::getInstance();
-	DictProducer dp("../conf/wordsCN.txt",t);
-	//DictProducer dp2("../data/enWords.txt");
+	DictProducer dp1(t);
+	DictProducer dp2;
 
-	//dp.buildCnDict();
+	//dp1.buildCnDict();
 	//dp2.buildEnDict();
 
 	//dp.createIndex();

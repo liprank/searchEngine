@@ -14,8 +14,11 @@ using std::to_string;
 #define LOGGER_LEVEL LL_WARN 
 using namespace simhash;
 
-RssReader::RssReader(){
-	doc.LoadFile("../conf/auto.xml");
+//读取xml库
+//循环生成网页库，网页偏移库
+RssReader::RssReader(const string &filename){
+	doc.LoadFile(filename.c_str());
+	// doc.LoadFile("../conf/auto.xml");
 }
 
 //判断网页是否重复，如果重复则不进行解析
@@ -35,9 +38,9 @@ bool RssReader::isDuplication(string context){
     //算指纹，存储指纹
     //因为simhash传入的参数为string，所以处理网页时也需要将网页变为string，来生成simhash
     simhasher.make(s, topN, u64);
-    cout<< "文本：\"" << s << "\"" << endl;
-    cout << "关键词序列是: " << res << endl;
-    cout<< "simhash值是: " << u64<<endl;
+    // cout<< "文本：\"" << s << "\"" << endl;
+    // cout << "关键词序列是: " << res << endl;
+    // cout<< "simhash值是: " << u64<<endl;
 
     // const char * bin1 = "100010110110";
     // const char * bin2 = "110001110011";
@@ -149,8 +152,9 @@ void RssReader::dump(const string& filename1,const string& filename2){
 
 	int docid = 1;
 	int pos = 0;
-	int length = 0;
 	for(auto item : _rss){
+		int length = 0;
+
 		output << "<doc>"<< endl;
 		output << "    " << "<docid>" << docid << "</docid>" << endl;
 		output << "    " << "<link>" << item.link << "</link>" << endl;

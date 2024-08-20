@@ -1,3 +1,11 @@
+doc
+docid
+link
+title
+description
+style
+text
+indent
 a
 about
 above
