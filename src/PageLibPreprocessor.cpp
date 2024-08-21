@@ -14,6 +14,11 @@ using std::to_string;
 //进行清洗
 map<string,string> configmap;
 DirScanner dirscanner;
+
+int docid = 1;
+unsigned int pos = 0;
+int length = 0;
+
 /**
  * @param Configuration &conf
  */
@@ -61,17 +66,17 @@ void PageLibPreprocessor::doProcess() {
     vector files = dirscanner.getFiles();
     dirscanner.clean();
 
-int count = 0;
-for(string file: files){
-    cout << file << endl;
+    int count = 0;
+    for(string file: files){
+        cout << file << endl;
 
-	RssReader reader(file);
-	reader.parseRss();             
-
-    //存储文件需要拼接，目录+文件名
-	reader.dump(configmap["webpageDir"]+ "/" + to_string(count)+".dat",configmap["webpageOffsetDir"]+ "/" +to_string(count)+".dat");
-    count++;
-}
+    	RssReader reader(file);
+    	reader.parseRss();             
+        cout << "offset: " << configmap["offsetLib"] << "\n"; 
+        reader.dump(configmap["webpageLib"],configmap["offsetLib"]);
+        
+        count++;
+    }
 
     return;
 }

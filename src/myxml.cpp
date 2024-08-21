@@ -14,8 +14,12 @@ using std::to_string;
 #define LOGGER_LEVEL LL_WARN 
 using namespace simhash;
 
+extern int docid;
+extern unsigned int pos;
+
 //读取xml库
-//循环生成网页库，网页偏移库
+//生成网页库，网页偏移库
+//注意网页库存放入一个文件当中，网页偏移库也放在同一个格式当中
 RssReader::RssReader(const string &filename){
 	doc.LoadFile(filename.c_str());
 	// doc.LoadFile("../conf/auto.xml");
@@ -63,14 +67,14 @@ bool RssReader::isDuplication(string context){
 			hash = Simhasher::binaryStringToUint64(hashstr);
 			//如果网页重复,海明距离默认为3
 			if(Simhasher::isEqual(hash,u64)){
-				cout << "网页重复" << endl;
+				// cout << "网页重复" << endl;
 				return true;
 			}
 		}
 		_simhash.push_back(bin);
 	}
 
-	cout << "网页不重复" << endl;
+	// cout << "网页不重复" << endl;
     return false;
 }
 
@@ -136,25 +140,23 @@ void RssReader::parseRss()
 		//转到一个item部分
 		itemElement = itemElement->NextSiblingElement();
 		if(itemElement == nullptr) cout << "itemElement is null" <<" times:" << times << endl;
-		times++;
-cout << times << "\n";
+// 		times++;
+// cout << times << "\n";
 	}
 }
 
 //输出xml格式化文件
 //要在生成文件之前，存储网页偏移库
 void RssReader::dump(const string& filename1,const string& filename2){
-	ofstream output(filename1,std::ios::out);	
-	ofstream offset(filename2,std::ios::out);	
+	//附加到文件末尾
+	ofstream output(filename1,std::ios::app);	
+	ofstream offset(filename2,std::ios::app);	
 
 	//创建网页偏移库结构
 	unordered_map<int,pair<int,int>> offsetLib;
 
-	int docid = 1;
-	int pos = 0;
 	for(auto item : _rss){
-		int length = 0;
-
+		unsigned int length = 0;
 		output << "<doc>"<< endl;
 		output << "    " << "<docid>" << docid << "</docid>" << endl;
 		output << "    " << "<link>" << item.link << "</link>" << endl;
@@ -183,5 +185,4 @@ void RssReader::dump(const string& filename1,const string& filename2){
 	offset.close();
 	cout << "file written successfully!" << endl;
 }
-
 

@@ -85,6 +85,7 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
 
     //计算权重值
     //<单词，docid>，权重
+
     map<pair<string,int>,double> weight;
 
     //unordered_map<string,int>
@@ -161,8 +162,7 @@ cout << temp << "\n";
     //1.设置一个存放权重的数据结构
     //2.得到一篇文章中所有词的权重
     //3.对一篇文章中的每一个词进行归一化处理 w1^2 / (w1^2 + ... + wn^2)^0.5
-    //要得到的倒排索引表，一个网页生成一个倒排索引表，其中需要包含词，权重，所在的文章docid
-    //因为打开的文件就包含所在的网页，所以不需要所在网页
+    
     if(weightSum > 0.0){
         weightSum = pow(weightSum,0.5); 
     }else{

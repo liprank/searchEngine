@@ -95,8 +95,10 @@ void DictProducer::buildEnDict(const string &dictfileEN) {
 		while(getline(files,line)){
 			//清洗文件
 			for(char &ch : line){
+				//line清洗空白字符
+				// line.erase(remove_if(line.begin(),line.end(),::isspace),line.end());
 				if(isalpha(ch)){
-					tolower(ch);
+					ch = tolower(ch);
 				}
 				else if(isalnum(ch)){
 					ch = ' ';
@@ -112,17 +114,32 @@ void DictProducer::buildEnDict(const string &dictfileEN) {
 			istringstream iss(line);
 			string word;
 			while(iss >> word){
-				wordFq[word]++;
+				if(word.size() > 2){
+					wordFq[word]++;
+				}
 			}
 
-			//TODO:erase remove的用法
+			//TODO:erase remove的用法 DONE
 		}
 	}
 
 	//根据词频顺序来放入词典中,而不是原来的顺序
 	//存储英文字典
+	//TODO: 词频并没有进行排序
+	//利用vector来对map进行排序
+	vector<pair<string,int>> arr;
+	for(const auto &item : wordFq){
+		arr.emplace_back(item);
+	}
+
+	sort(arr.begin(),arr.end(),[](const auto &x,const auto &y){
+		//降序排序，频率高的在前面
+		return x.second > y.second;
+	});
+
 	ofstream ofs(dictfileEN);
-	for(auto elem : wordFq){
+
+	for(auto elem : arr){
 		ofs << elem.first << " " << num << "\n";
 		_dict.push_back(make_pair(elem.first,num++));	
 		
@@ -162,7 +179,9 @@ void DictProducer::buildCnDict(const string & dictfileCN) {
 
 		vector<string> temp = _cuttor->cut(str);	
 		for(string word : temp){
-			wordFq[word]++;
+			if(word.size() > 2){
+				wordFq[word]++;
+			}
 		}
 	
 	}	
@@ -181,9 +200,19 @@ void DictProducer::buildCnDict(const string & dictfileCN) {
 	//	}
 	//}	
 
+	vector<pair<string,int>> arr;
+	for(const auto &item : wordFq){
+		arr.emplace_back(item);
+	}
+
+	sort(arr.begin(),arr.end(),[](const auto &x,const auto &y){
+		//降序排序，频率高的在前面
+		return x.second > y.second;
+	});
+
 	//基类指针指向派生类对象，所以会调用虚函数
 	ofstream ofs(dictfileCN);
-	for(auto elem : wordFq){
+	for(auto elem : arr){
 		ofs << elem.first << " " << num << "\n";
 		_dict.push_back(make_pair(elem.first,num++));	
 	}

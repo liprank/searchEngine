@@ -1,7 +1,9 @@
 #include "../include/KeyRecommander.h"
+#include "../include/WebPageQuery.h"
 #include <workflow/WFHttpServer.h>
 #include <workflow/WFFacilities.h>
 #include "../include/nlohmann/json.hpp" 
+#include <wfrest/HttpServer.h>
 #include <signal.h>
 #include <iostream>
 #include <fstream>
@@ -38,6 +40,8 @@ void process(WFHttpTask* serverTask){
     //建立查询词
     KeyRecommander wordQuery(word);
 
+    //网页查询
+    WebPageQuery webQuery;
     //query为推荐，search为搜索网页
     if(Check == "query"){
         //如果是推荐词
@@ -57,15 +61,21 @@ void process(WFHttpTask* serverTask){
             string word = wordQuery._priQue.top()._word;
             wordQuery._priQue.pop();
             json_object.push_back(word);
-
-            cout << "word: " << word << '\n';
         }
         cout << json_object.dump() << "\n";        
         resp->append_output_body(json_object.dump());
 
 
-
     }else if(Check == "search"){
+cout << "11111111111111\n";
+        //接收查询
+        webQuery.doQuery(word);
+cout << "word: " << word;
+        //获取文档
+        //形成json格式并返回
+
+        webQuery.doQuery(word);
+        resp->append_output_body(webQuery.createJson());
         resp->append_output_body("search");
     }
 }

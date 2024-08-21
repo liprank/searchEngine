@@ -67,8 +67,6 @@ public:
  */
     int distance(string query, string candidate);
 
-
-
 private: 
     //词典
     vector<pair<string,int>> _dict;

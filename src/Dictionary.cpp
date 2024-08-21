@@ -7,11 +7,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 using std::ifstream;
 using std::istringstream;
 using std::cout;
 using std::cerr;
+
 /**
  * Dictionary implementation
  */
@@ -62,7 +64,10 @@ vector<string> Dictionary::doQuery(const string &key){
             //根据索引去词典文件中进行查找
             //找到对应词典中的词
             string word = _dict[i].first;
-            queryFind.push_back(word);
+            auto it = find(queryFind.begin(),queryFind.end(),word);
+            if(it == queryFind.end()){
+                queryFind.push_back(word);
+            }
         }
     }
 

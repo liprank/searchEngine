@@ -24,7 +24,7 @@ bin/InvertProducer.o: src/InvertProducer.cpp
 	g++ -c src/InvertProducer.cpp -I include -g -o bin/InvertProducer.o 
 
 bin/searchServer: bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o
-	g++ bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o -lworkflow -g
+	g++ bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o -o bin/searchServer -lworkflow -g
 bin/Dictionary.o: src/Dictionary.cpp
 	g++ -c src/Dictionary.cpp -I include -g -o bin/Dictionary.o
 bin/KeyRecommander.o: src/KeyRecommander.cpp
