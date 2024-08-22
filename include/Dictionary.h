@@ -73,6 +73,9 @@ private:
 
     //索引表
     map<string,set<int>> _index;
+    
+    //查询词
+    string _sought;
 };
 
 #endif //_DICTIONARY_H

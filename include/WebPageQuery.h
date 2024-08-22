@@ -27,7 +27,7 @@ public:
 /**
  * @param key
  */
-    string doQuery(string key);
+    void doQuery(string key);
 
 //获取文档内容，形成json格式
 //从优先级队列当中取出文档，然后访问网页偏移库，访问网页，形成json格式并返回
@@ -49,9 +49,19 @@ private:
     unordered_map<string,vector<pair<int, double>>> _invertIndexLib;
 
     //优先级队列
+    //docid，相似度
     priority_queue<pair<int,double>> _priQue;
 
     SplitTool* _wordCutTool;
 };
+
+// namespace std{
+// template<>
+// struct less<pair<int,double>>{
+//     bool operator()(const pair<int,double>& lhs,const pair<int,double> &rhs){
+//         return lhs.second < rhs.second;
+//     }
+// };
+// }
 
 #endif //_WEBPAGEQUERY_H

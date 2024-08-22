@@ -1,4 +1,4 @@
-all: bin/DictProducer bin/PagePre bin/InvertProducer bin/searchServer
+all: bin/DictProducer bin/PagePre bin/InvertProducer bin/searchServer 
 
 bin/DictProducer: bin/DictProducer.o bin/SplitToolCppJieba.o bin/Configuration.o
 	g++ bin/DictProducer.o bin/SplitToolCppJieba.o bin/Configuration.o -o bin/DictProducer
@@ -23,11 +23,13 @@ bin/InvertProducer: bin/InvertProducer.o bin/SplitToolCppJieba.o bin/tinyxml2.o
 bin/InvertProducer.o: src/InvertProducer.cpp
 	g++ -c src/InvertProducer.cpp -I include -g -o bin/InvertProducer.o 
 
-bin/searchServer: bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o
-	g++ bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o -o bin/searchServer -lworkflow -g
+bin/searchServer: bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o bin/WebPageQuery.o bin/SplitToolCppJieba.o
+	g++ bin/Dictionary.o bin/KeyRecommander.o bin/searchServer.o -o bin/searchServer bin/WebPageQuery.o bin/SplitToolCppJieba.o -lworkflow -lwfrest -g
 bin/Dictionary.o: src/Dictionary.cpp
 	g++ -c src/Dictionary.cpp -I include -g -o bin/Dictionary.o
 bin/KeyRecommander.o: src/KeyRecommander.cpp
 	g++ -c src/KeyRecommander.cpp -I include -g -o bin/KeyRecommander.o
 bin/searchServer.o: src/searchServer.cpp
 	g++ -c src/searchServer.cpp -I include -g -o bin/searchServer.o
+bin/WebPageQuery.o: src/WebPageQuery.cpp
+	g++ -c src/WebPageQuery.cpp -I include -g -o bin/WebPageQuery.o

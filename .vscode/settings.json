@@ -3,6 +3,7 @@
         "*.tcc": "cpp",
         "cctype": "cpp",
         "regex": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "unordered_map": "cpp"
     }
 }

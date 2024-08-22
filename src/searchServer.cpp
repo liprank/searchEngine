@@ -21,38 +21,26 @@ void sigHandler(int sigNum){
     cout << "done!\n";
 }
 
-void process(WFHttpTask* serverTask){
-    //获取请求
-    protocol::HttpRequest *req = serverTask->get_req();
-    //获取响应
-    protocol::HttpResponse *resp = serverTask->get_resp(); 
+int main(){
+    signal(SIGINT,sigHandler);
 
-    //需要判断是推荐词还是搜索网页
-    //TODO: http任务之间的区分，get,post有啥区别？
-    string uri = req->get_request_uri();
-    string CheckKV = uri.substr(uri.find("/")+1);
-    string Check = CheckKV.substr(0,CheckKV.find("&")); 
+    // 构建一个httpserver作为服务端
+    wfrest::HttpServer server;
 
-    //获取查询词
-    string word = CheckKV.substr(CheckKV.find("&")+1);
-    string methodCheck = req->get_method();
+    //get请求用于建立网页
+    server.GET("/query",[](const wfrest::HttpReq *req,wfrest::HttpResp *resp){
+       
+    });
 
-    //建立查询词
-    KeyRecommander wordQuery(word);
-
-    //网页查询
-    WebPageQuery webQuery;
-    //query为推荐，search为搜索网页
-    if(Check == "query"){
-        //如果是推荐词
-        //1.接收词，将信息分割为每一个字
-        //2.对每一个字在词典中进行查询
-        //3.查询结果取并集,形成候选词
-        //3.1 如何查询？ 在离线生成的字典库中，先访问字典索引，通过字典索引来访问字典
-        //需要增加一个类来处理query
-        //4.对候选词进行排序
-        //5.以json格式返回候选词
+    //用post请求来接收查询
+    server.POST("/query",[](const wfrest::HttpReq *req,wfrest::HttpResp *resp){
+        //建立查询词
+        KeyRecommander wordQuery("你好");
         nlohmann::json json_object;
+
+        //查询缓存，redis
+
+
 
         //遍历优先级队列
         int count = 0;
@@ -64,34 +52,44 @@ void process(WFHttpTask* serverTask){
         }
         cout << json_object.dump() << "\n";        
         resp->append_output_body(json_object.dump());
+    });
+
+    
+    server.POST("/search",[](const wfrest::HttpReq *req,wfrest::HttpResp *resp){
+        //网页查询
+        WebPageQuery webQuery;
+
+        //获取报文体内容
+        map<string,string>  mapForm = req->form_kv();
+        for(auto pair:mapForm){
+            cout << "key = " << pair.first << " value = " << pair.second << "\n";
+        }
 
 
-    }else if(Check == "search"){
-cout << "11111111111111\n";
         //接收查询
-        webQuery.doQuery(word);
-cout << "word: " << word;
+        webQuery.doQuery("还进行");
         //获取文档
         //形成json格式并返回
 
-        webQuery.doQuery(word);
-        resp->append_output_body(webQuery.createJson());
         resp->append_output_body("search");
-    }
-}
 
-int main(){
-    signal(SIGINT,sigHandler);
+        //TODO: json为空 
+// cout << webQuery.createJson();
+        resp->append_output_body(webQuery.createJson());
+    });
 
-    // 构建一个httpserver作为服务端
-    WFHttpServer server(process);
-    if(server.start(12345) == 0){
+
+
+     if(server.track().start(12345) == 0){
+        // start是非阻塞的
+        server.list_routes();
         waitGroup.wait();
-        cout << "finished\n";
+        cout << "finished!\n";
         server.stop();
         return 0;
-    }else{
-        perror("server start failed");
+    }
+    else{
+        perror("server start fail!");
         return -1;
     }
 }

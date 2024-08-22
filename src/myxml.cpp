@@ -106,24 +106,20 @@ void RssReader::parseRss()
 		//const char* content = textNode3->Value();
 
         //加入过滤器
-		regex re1(R"(<p>|</p>|</li>|</ul>|<h4>|</h4>|<div>|</div>)");
-		regex re2(R"(<ul>)");
-		regex re3("<li>");
-		//regex re2("</p>");
 
-		string descriptionR1 = std::regex_replace(description,re1,"");
+		// regex re1(R"(<p>|</p>|</li>|</ul>|<h4>|</h4>|<div>|</div>)");
+		// regex re2(R"(<ul>)");
+		// regex re3("<li>");
+
+		std::regex reg("<[^>]+>");//通用正则表达式(主要研究一下正则表达式的规则)
+
+		string descriptionR = std::regex_replace(description,reg,"");
 		//string contentR1 = std::regex_replace(content,re1,"");
-		
-		string descriptionR2 = std::regex_replace(descriptionR1,re2,"\n");
-		//string contentR2 = std::regex_replace(contentR1,re2,"\n");
-
-		string descriptionR3 = std::regex_replace(descriptionR2,re3,"->");
-		//string contentR3 = std::regex_replace(contentR2,re3,"->");
 
 		RssItem rssItem;
 		rssItem.title = title;
 		rssItem.link = link;
-		rssItem.description = descriptionR3;
+		rssItem.description = descriptionR;
 		//rssItem.content = contentR3;
 
 		//在解析网页这里实现去重

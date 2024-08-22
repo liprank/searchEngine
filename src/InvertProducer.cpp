@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <cmath>
 #include <algorithm>
+#include <regex>
 
 using std::ifstream;
 using std::ofstream;
@@ -17,6 +18,7 @@ using std::map;
 using std::unordered_set;
 using std::pair;
 using std::log2;
+using std::regex;
 
 using std::cerr;
 using std::cout;
@@ -32,9 +34,8 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
     ifstream stopwordsEN("../conf/stop_words_eng.txt");
     ifstream stopwordsZH("../conf/stop_words_zh.txt");
 
-    ofstream output("../data/InvertDict.dat",std::ios::app);
+    ofstream output("../data/InvertDict1.dat",std::ios::out);
 
-    ofstream test("1.txt");
     //分词器
     SplitTool* t = SplitToolCppJieba::getInstance();
 
@@ -75,6 +76,9 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
     string line;
     int docid, pos, length;
 
+    //记录总文档数
+    int N = 0;
+
     vector<string> words;
 
     //记录该词在文章中的出现次数，需要记录出现在哪篇文章
@@ -85,52 +89,79 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
 
     //计算权重值
     //<单词，docid>，权重
-
     map<pair<string,int>,double> weight;
 
     //unordered_map<string,int>
     //每次读取一个doc
     while(getline(offset,line)){
+        N++;
         //获取网页偏移库
         istringstream iss(line);
         iss >> docid >> pos >> length;
 
-cout << "1docid: " << docid << '\n';
-cout << "pos: " << pos << "\n";
-cout << "length: " << length << "\n";
+// cout << "1docid: " << docid << '\n';
+// cout << "pos: " << pos << "\n";
+// cout << "length: " << length << "\n";
 
         //读取网页库
         char buffer[length+1];
+        bzero(buffer,length+1);
+
         web.seekg(pos);
-        web.read(buffer,length);
+        web.read(buffer,length-1);
+
+        string temp(buffer);
+        // cout << temp << "\n";
+
+        //使用正则表达式
+        std::regex tag_pattern(R"(<(\w+)>(.*?)</\1>)",std::regex::ECMAScript);     
+        std::sregex_iterator it_begin(temp.begin(), temp.end(), tag_pattern);
+        std::sregex_iterator it_end;
+
+        // 存储解析结果的map
+        std::map<std::string, std::string> doc_data;
+
+        // 遍历所有匹配项
+        for (std::sregex_iterator i = it_begin; i != it_end; ++i) {
+            std::smatch match = *i;
+            std::string tag = match[1].str();
+            std::string content = match[2].str();
+            doc_data[tag] = content;
+        }
+
+        // for (const auto& pair : doc_data) {
+        //     string des = pair.first;
+        //     if(des == "description"){
+        //         cout << pair.second << "\n";
+        //     }
+        // }
 
         //进行分词
-        string temp(buffer);
-cout << temp << "\n";
-        temp.erase(remove_if(temp.begin(),temp.end(),::isspace),temp.end());
-//cout << temp << "\n";
+        // XMLDocument doc;
+        // if(doc.Parse(buffer) != XML_SUCCESS){
+        //     cerr << "解析文章失败\n"; 
+        // }
+        // XMLElement* root = doc.FirstChildElement();
+        // XMLElement* context = root->FirstChildElement("description");
+        // XMLText* text = context->FirstChild()->ToText();
+        // string temp = text->Value();
 
-        words = t->cut(temp);
+        words = t->cut(doc_data["description"]);
         //去除停用词
         for(string word : words){
             if(word.size() > 2 && stopwords.find(word) == stopwords.end()){
-                //得到词语在文章中的出现次数
-//cout << "2docid: " << docid << "\n";
-                dewords[make_pair(word,docid)]++;
-                test << word << "\n";
+                pair<string,int> wordtext = make_pair(word,docid);
+                dewords[wordtext]++;
             }else{
                 continue;
             }
         }
+    }
 
-        //遍历去停用词词库
-        for(auto elem : dewords){
-            string key = elem.first.first;
-            int value = elem.second;
-            if(elem.second > 0){
-                wordinDocs[key]++;
-            }
-        }
+    for(auto elem : dewords){
+        string key = elem.first.first;
+        //记录出现的文章数
+        wordinDocs[key]++;
     }
 
     //生成权重
@@ -140,23 +171,32 @@ cout << temp << "\n";
     //现在得到在文章中的出现次数，包含该词的文章数量，计算IDF
     //IDF = log2(N/(DF+1)+1)
     //w = TF * IDF
-    int N = 100;//TODO:假设总文档数为100
     double weightSum = 0.0;
     for(auto elem : dewords){
-        string key = elem.first.first;
-        int id = elem.first.second;
-        int value = elem.second;
+        string word = elem.first.first;
+        int docid = elem.first.second;
+        int times = elem.second;
 
-        int docs = wordinDocs[key];
+        int docs = wordinDocs[word];
+
         double IDF = log2(N/(docs+1)+1);
-        double w = value * IDF; 
+
+        double w = times * IDF;
+
+cout << "docid: " << docid << "\n";
+cout << "times: " << times << "\n";
+cout << "docs: " << docs << "\n";
+cout << "IDF: " << IDF << "\n";
+cout << "w: " << w << "\n";
 
         //存储权重
-        weight[make_pair(key,id)] = w;
+        weight[make_pair(word,docid)] = w;
 
         //记录权重平方和，用于归一化处理
-        weightSum = w * w;
+        weightSum += w * w;
     }
+
+
 
     //得到每一个词的权重，进行归一化处理
     //1.设置一个存放权重的数据结构
@@ -169,18 +209,22 @@ cout << temp << "\n";
         cerr << "无法计算权重" << endl;
         return;
     }
-
+cout << "weightsum: " << weightSum <<  "\n";
+double test = 0;
     for(auto elem : weight){
-        string key = elem.first.first;
-        int id = elem.first.second;
-        double value = elem.second;
+        string word = elem.first.first;
+        int docid = elem.first.second;
+        double weight = elem.second;
 
-        elem.second = (value*value) / weightSum; 
-
+test += weight*weight;
+cout << "weightbefore: " << weight << "\n"; 
+        weight = weight / weightSum; 
         //创建倒排索引表
         //TODO: 根据权重进行排序
-        output << key << " " << id << " " << value << "\n";
+cout << "weightend: " << weight << "\n"; 
+        output << word << " " << docid << " " << weight << "\n";
     }
+cout << "test: " << pow(test,0.5) << "\n";
 }
 
 int main(){
