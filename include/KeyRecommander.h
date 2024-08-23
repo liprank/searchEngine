@@ -19,6 +19,9 @@ public:
     //并存放到优先级队列中 
 
     void doQuery();
+    void doQuery(string word);
+
+    KeyRecommander();
 
     KeyRecommander(string word);
 

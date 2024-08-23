@@ -1,3 +1,5 @@
+#include "../include/LRU.h"
+
 #include <iostream>
 #include <list>
 #include <unordered_map>
@@ -7,68 +9,42 @@ using std::endl;
 using std::list;
 using std::unordered_map;
 
-class LRU
+int LRU::put(int key, int value)//插入数据
 {
-public:
-    LRU(int capacity)
-    : _capacity(capacity)
+    unordered_map<int, list<CacheNode>::iterator>::iterator it;
+    if((it = _cache.find(key)) !=_cache.end())//如果该key已经存在,直接放在链表头
     {
+        it->second->value = value;
+        _nodes.splice(_nodes.begin(), _nodes, it->second);
     }
-
-    int put(int key, int value)//插入数据
+    else//如果该key不存在
     {
-        unordered_map<int, list<CacheNode>::iterator>::iterator it;
-        if((it = _cache.find(key)) !=_cache.end())//如果该key已经存在,直接放在链表头
+        if(_capacity == _nodes.size())//看链表是不是满的，满的话需要删除链表尾元素
         {
-            it->second->value = value;
-            _nodes.splice(_nodes.begin(), _nodes, it->second);
+            auto &deleteNode = _nodes.back();//找到待删除节点
+            _cache.erase(deleteNode.key);//在unordered_map中删除
+            _nodes.pop_back();//在list中删除
         }
-        else//如果该key不存在
-        {
-            if(_capacity == _nodes.size())//看链表是不是满的，满的话需要删除链表尾元素
-            {
-                auto &deleteNode = _nodes.back();//找到待删除节点
-                _cache.erase(deleteNode.key);//在unordered_map中删除
-                _nodes.pop_back();//在list中删除
-            }
-            //不论满还是不满，直接在链表前面插入并插入到unordered_map中
-            _nodes.push_front(CacheNode(key, value));
-            _cache.insert(std::make_pair(key, _nodes.begin()));
-        }
-
+        //不论满还是不满，直接在链表前面插入并插入到unordered_map中
+        _nodes.push_front(CacheNode(key, value));
+        _cache.insert(std::make_pair(key, _nodes.begin()));
     }
+    return 0;
+}
 
-    int get(int key)//查找该key
+int LRU::get(int key)//查找该key
+{
+    auto it = _cache.find(key);//查询该key在不在unordered_map中
+    if(it == _cache.end())//不存在直接返回-1
     {
-        auto it = _cache.find(key);//查询该key在不在unordered_map中
-        if(it == _cache.end())//不存在直接返回-1
-        {
-            return -1;
-        }
-        else//存在就放在链表头部,并返回其值
-        {
-            _nodes.splice(_nodes.begin(), _nodes, it->second);
-            return it->second->value;
-        }
+        return -1;
     }
-private:
-    struct CacheNode
+    else//存在就放在链表头部,并返回其值
     {
-        CacheNode(int k, int v)
-        : key(k)
-        , value(v)
-        {
-
-        }
-        int key;
-        int value;
-    };
-private:
-    int _capacity;//缓存的大小为2
-    list<CacheNode> _nodes;//节点放在list链表之中
-    unordered_map<int, list<CacheNode>::iterator> _cache;//存储key值以及在链表中的位置
-};
-
+        _nodes.splice(_nodes.begin(), _nodes, it->second);
+        return it->second->value;
+    }
+}
 
 int main(int argc, char **argv)
 {

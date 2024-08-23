@@ -26,26 +26,9 @@ using std::endl;
 
 SplitToolCppJieba* SplitToolCppJieba::_pInstance = nullptr;
 
-//创建倒排索引
-void RssReader::invertDict(const string &filename1,const string &filename2){
-    ifstream web(filename1); 
-    ifstream offset(filename2);
-
+void RssReader::getStopWords(){
     ifstream stopwordsEN("../conf/stop_words_eng.txt");
     ifstream stopwordsZH("../conf/stop_words_zh.txt");
-
-    ofstream output("../data/InvertDict1.dat",std::ios::out);
-
-    //分词器
-    SplitTool* t = SplitToolCppJieba::getInstance();
-
-    if(!web.is_open()){
-        cerr << "open file webpage failed" << endl;
-    }
-
-    if(!offset.is_open()){
-        cerr << "open file offset failed" << endl;
-    }
 
     if(!stopwordsZH.is_open()){
         cerr << "open file stopwordsZH failed" << endl;
@@ -56,18 +39,37 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
     }
 
     //采集停用词
-    unordered_set<string> stopwords;
     string word;
 
     while(getline(stopwordsZH,word)){
         word.erase(remove_if(word.begin(),word.end(),::isspace),word.end());
 //cout << "stop word = " << word << " size = " << word.size() << endl;
-        stopwords.insert(word);
+        _stopwords.insert(word);
     } 
     while(getline(stopwordsEN,word)){
         word.erase(remove_if(word.begin(),word.end(),::isspace),word.end());
 //cout << "stop word = " << word << " size = " << word.size() << endl;
-        stopwords.insert(word);
+        _stopwords.insert(word);
+    }
+
+}
+
+
+//创建倒排索引
+void RssReader::invertDict(const string &filename1,const string &filename2){
+    ifstream web(filename1); 
+    ifstream offset(filename2);
+    ofstream output("../data/InvertDict.dat",std::ios::out);
+    getStopWords();
+
+    //分词器
+    SplitTool* t = SplitToolCppJieba::getInstance();
+
+    if(!web.is_open()){
+        cerr << "open file webpage failed" << endl;
+    }
+    if(!offset.is_open()){
+        cerr << "open file offset failed" << endl;
     }
 
     //进行分词
@@ -85,7 +87,7 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
     map<pair<string,int>,int> dewords;
 
     //记录单词出现的doc数量
-    unordered_map<string,int> wordinDocs;
+    map<string,int> wordinDocs;
 
     //计算权重值
     //<单词，docid>，权重
@@ -95,13 +97,10 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
     //每次读取一个doc
     while(getline(offset,line)){
         N++;
+cout << N << "\n";
         //获取网页偏移库
         istringstream iss(line);
         iss >> docid >> pos >> length;
-
-// cout << "1docid: " << docid << '\n';
-// cout << "pos: " << pos << "\n";
-// cout << "length: " << length << "\n";
 
         //读取网页库
         char buffer[length+1];
@@ -136,20 +135,13 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
         //     }
         // }
 
-        //进行分词
-        // XMLDocument doc;
-        // if(doc.Parse(buffer) != XML_SUCCESS){
-        //     cerr << "解析文章失败\n"; 
-        // }
-        // XMLElement* root = doc.FirstChildElement();
-        // XMLElement* context = root->FirstChildElement("description");
-        // XMLText* text = context->FirstChild()->ToText();
-        // string temp = text->Value();
+        std::regex reg("<[^>]+>");//通用正则表达式(主要研究一下正则表达式的规则)
+		doc_data["description"] = std::regex_replace(doc_data["description"],reg,"");
 
         words = t->cut(doc_data["description"]);
         //去除停用词
         for(string word : words){
-            if(word.size() > 2 && stopwords.find(word) == stopwords.end()){
+            if(word.size() > 2 && _stopwords.find(word) == _stopwords.end()){
                 pair<string,int> wordtext = make_pair(word,docid);
                 dewords[wordtext]++;
             }else{
@@ -183,12 +175,6 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
 
         double w = times * IDF;
 
-cout << "docid: " << docid << "\n";
-cout << "times: " << times << "\n";
-cout << "docs: " << docs << "\n";
-cout << "IDF: " << IDF << "\n";
-cout << "w: " << w << "\n";
-
         //存储权重
         weight[make_pair(word,docid)] = w;
 
@@ -209,25 +195,20 @@ cout << "w: " << w << "\n";
         cerr << "无法计算权重" << endl;
         return;
     }
-cout << "weightsum: " << weightSum <<  "\n";
-double test = 0;
+
     for(auto elem : weight){
         string word = elem.first.first;
         int docid = elem.first.second;
         double weight = elem.second;
 
-test += weight*weight;
-cout << "weightbefore: " << weight << "\n"; 
         weight = weight / weightSum; 
         //创建倒排索引表
         //TODO: 根据权重进行排序
-cout << "weightend: " << weight << "\n"; 
         output << word << " " << docid << " " << weight << "\n";
     }
-cout << "test: " << pow(test,0.5) << "\n";
 }
 
 int main(){
     RssReader reader;
-    reader.invertDict("../data/webpage1.dat","../data/offset1.dat");
+    reader.invertDict("../data/webpage.dat","../data/offset.dat");
 }

@@ -60,14 +60,14 @@ WebPageQuery::WebPageQuery()
 string WebPageQuery::createJson()
 {
     // 打开网页偏移库
-    ifstream ifs("../data/offset1.dat");
+    ifstream ifs("../data/offset.dat");
     if (!ifs.is_open())
     {
         cerr << "open file offset failed\n";
     }
 
     // 打开网页库
-    ifstream web("../data/webpage1.dat");
+    ifstream web("../data/webpage.dat");
     if (!web.is_open())
     {
         cerr << "open file webpage failed\n";
@@ -108,11 +108,13 @@ string WebPageQuery::createJson()
         int pos = _offsetlib[docid].first;
         int length = _offsetlib[docid].second;
 
-        buffer = (char *)malloc(length + 1);
-        bzero(buffer, length + 1);
+        //TODO: 读取文件的注意事项
+        //读取长度过长会有脏数据
+        buffer = (char *)calloc(length + 1,1);
+        // bzero(buffer, length + 1);
 
         web.seekg(pos,std::ios::beg);
-        web.read(buffer, length + 1);
+        web.read(buffer, length);
 
         json_object.push_back(string(buffer));
 
@@ -175,7 +177,7 @@ void WebPageQuery::doQuery(string key)
     }
 
     // 查找倒排索引表
-    ifstream ifs("../data/InvertDict1.dat");
+    ifstream ifs("../data/InvertDict.dat");
 
     // 读取倒排索引表
     string line;
@@ -333,6 +335,5 @@ void WebPageQuery::doQuery(string key)
 //     string searchword = "还进行";
 //     WebPageQuery w;
 //     w.doQuery(searchword);
-//     w.createJson();
 //     cout << w.createJson() << endl;
 // }
