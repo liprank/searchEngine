@@ -14,11 +14,16 @@ using std::unordered_map;
 using std::list;
 
 using std::string;
-class LRUCache {
+
+class LRUcache {
 public: 
-    LRUCache(int capacity)
+    LRUcache(int capacity)
     : _capacity(capacity)
     {
+    }
+
+    LRUcache(){
+
     }
 
     int put(string key, string json);
@@ -29,6 +34,11 @@ public:
  * @param filename
  */
 // void writeToFile(string& filename);
+
+    void show();
+
+public:
+    int _capacity; //记录缓存的大小
 
 private:
     struct CacheNode{
@@ -44,11 +54,11 @@ private:
         string value;
     };
 
+public:
+    list<pair<string,string>> _pendingList; //用于同步
 private: 
-    int _capacity; //记录缓存的大小
     list<CacheNode> _nodes; //节点放在list链表之中
     unordered_map<string,list<CacheNode>::iterator> _cache;//存放key值，以及在链表中的位置
-    // list<pair<string,string>> _pendingUpdateList;
 };
 
 #endif //_LRUCACHE_H

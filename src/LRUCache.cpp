@@ -27,7 +27,12 @@ using std::cout;
  * @return void
  */
 //增加结点
-int LRUCache::put(string key, string json) {
+//当加入节点的时候，同时加入到pendinglist当中用于多个线程的同步
+int LRUcache::put(string key, string json) {
+
+    //插入到pengdinglist当中
+    _pendingList.push_front(make_pair(key,json));
+
     unordered_map<string, list<CacheNode>::iterator>::iterator it;
     if((it = _cache.find(key)) !=_cache.end())//如果该key已经存在,直接放在链表头
     {
@@ -55,7 +60,7 @@ int LRUCache::put(string key, string json) {
  * @return void
  */
 //更新结点
-string LRUCache::get(string key) {
+string LRUcache::get(string key) {
     auto it = _cache.find(key);//查询该key在不在unordered_map中
     if(it == _cache.end())//不存在直接返回-1
     {
@@ -68,6 +73,13 @@ string LRUCache::get(string key) {
     }
 }
 
+void LRUcache::show(){
+    for(auto elem : _nodes){
+        cout << elem.key << " " << elem.value << "\n";
+    }
+}
+
+
 /**
  * @param filename
  * @return void
@@ -78,7 +90,7 @@ string LRUCache::get(string key) {
 // }
 
 // int main(){
-//     LRUCache  lr(2);
+//     LRUcache  lr(2);
 //     lr.put("hello","000000001111");
 
 //     cout << "get(hello) = " << lr.get("hello") << "\n";

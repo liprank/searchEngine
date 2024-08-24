@@ -108,7 +108,6 @@ string WebPageQuery::createJson()
         int pos = _offsetlib[docid].first;
         int length = _offsetlib[docid].second;
 
-        //TODO: 读取文件的注意事项
         //读取长度过长会有脏数据
         buffer = (char *)calloc(length + 1,1);
         // bzero(buffer, length + 1);
@@ -236,10 +235,6 @@ void WebPageQuery::doQuery(string key)
         target.clear();
     }
 
-    // cout << "交集结果: \n";
-    // for(auto elem : v1){
-    //     cout << elem << " ";
-    // }
     vector<vector<double>> weightmap;
 
     // wordid docid weight
@@ -248,25 +243,6 @@ void WebPageQuery::doQuery(string key)
     // docid1
     // docid2
     // docid3
-
-    //     for(string word : dewords){
-    //         //获取倒排索引表中的docid,weight
-    //         vector<pair<int,double>> vec = _invertIndexLib[word];
-    //         vector<int> docs;
-
-    //         //交集的结果
-    //         vector<double> w;
-
-    //         for(int docid : v1){
-    //             //找到该词，该docid下的weight
-    //             for(auto elem: vec){
-    //                 if(elem.first==docid){
-    //                     w.push_back(elem.second);
-    //                 }
-    //             }
-    //         }
-    //         weightmap.push_back(w);
-    //    }
 
     for (int docid : v1)
     {
@@ -287,15 +263,6 @@ void WebPageQuery::doQuery(string key)
         }
         weightmap.push_back(w);
     }
-
-    // for (auto elem : weightmap)
-    // {
-    //     for (double w : elem)
-    //     {
-    //         cout << w << " ";
-        // }
-    //     cout << "\n";
-    // }
 
     // 计算基准向量每个词的权重
     // 同样需要归一化处理

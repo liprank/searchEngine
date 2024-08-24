@@ -70,12 +70,6 @@ vector<string> Dictionary::doQuery(const string &key){
             }
         }
     }
-
-   //返回找到的单词
-    // for(string str : queryFind){
-    //     cout << str << "\n";
-    // }
-
     return queryFind;
 }
 

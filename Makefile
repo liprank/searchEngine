@@ -1,4 +1,4 @@
-all: bin/DictProducer bin/PagePre bin/InvertProducer bin/searchServer 
+all: bin/DictProducer bin/PagePre bin/InvertProducer bin/searchServer bin/serverLRU bin/serverPool bin/serverTimer
 
 bin/DictProducer: bin/DictProducer.o bin/SplitToolCppJieba.o bin/Configuration.o
 	g++ bin/DictProducer.o bin/SplitToolCppJieba.o bin/Configuration.o -o bin/DictProducer
@@ -33,3 +33,20 @@ bin/searchServer.o: src/searchServer.cpp
 	g++ -c src/searchServer.cpp -I include -g -o bin/searchServer.o
 bin/WebPageQuery.o: src/WebPageQuery.cpp
 	g++ -c src/WebPageQuery.cpp -I include -g -o bin/WebPageQuery.o
+
+bin/serverLRU: bin/serverLRU.o bin/KeyRecommander.o bin/LRUCache.o bin/Dictionary.o
+	g++ bin/serverLRU.o bin/KeyRecommander.o bin/LRUCache.o bin/Dictionary.o -o bin/serverLRU -lworkflow -lwfrest -g
+bin/serverLRU.o: src/serverLRU.cpp
+	g++ -c src/serverLRU.cpp -I include -g -o bin/serverLRU.o;
+bin/LRUCache.o: src/LRUCache.cpp
+	g++ -c src/LRUCache.cpp -I include -g -o bin/LRUCache.o
+
+bin/serverPool: bin/serverPool.o bin/KeyRecommander.o bin/Dictionary.o bin/LRUCache.o 
+	g++ bin/serverPool.o bin/KeyRecommander.o bin/Dictionary.o bin/LRUCache.o -o bin/serverPool -lworkflow -lwfrest -g
+bin/serverPool.o: src/serverPool.cpp
+	g++ -c src/serverPool.cpp -I include -g -o bin/serverPool.o
+
+bin/serverTimer: bin/serverTimer.o bin/KeyRecommander.o bin/Dictionary.o bin/LRUCache.o
+	g++ bin/serverTimer.o bin/KeyRecommander.o bin/Dictionary.o bin/LRUCache.o -o bin/serverTimer -lworkflow -lwfrest -g
+bin/serverTimer.o: src/serverTimer.cpp
+	g++ -c src/serverTimer.cpp -I include -g -o bin/serverTimer.o

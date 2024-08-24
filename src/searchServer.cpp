@@ -137,14 +137,17 @@ int main(){
 
         //获取报文体内容
         //查询词放在报文体当中
-        map<string,string>  mapForm = req->form_kv();
+        map<string,string> mapForm = req->form_kv();
+        string key,value;
+
         for(auto pair:mapForm){
-            cout << "key = " << pair.first << " value = " << pair.second << "\n";
+            key = pair.first;
+            value = pair.second;
+            // cout << "key = " << pair.first << " value = " << pair.second << "\n";
         }
 
-
         //接收查询
-        webQuery.doQuery("还进行");
+        webQuery.doQuery("武汉");
         //获取文档
         //形成json格式并返回
 

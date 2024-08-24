@@ -95,7 +95,7 @@ void RssReader::invertDict(const string &filename1,const string &filename2){
 
     //unordered_map<string,int>
     //每次读取一个doc
-    while(getline(offset,line)){
+    while(getline(offset,line) && N < 300){
         N++;
 cout << N << "\n";
         //获取网页偏移库
@@ -203,7 +203,7 @@ cout << N << "\n";
 
         weight = weight / weightSum; 
         //创建倒排索引表
-        //TODO: 根据权重进行排序
+        //根据权重进行排序
         output << word << " " << docid << " " << weight << "\n";
     }
 }

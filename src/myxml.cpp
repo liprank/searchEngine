@@ -42,21 +42,11 @@ bool RssReader::isDuplication(string context){
     //算指纹，存储指纹
     //因为simhash传入的参数为string，所以处理网页时也需要将网页变为string，来生成simhash
     simhasher.make(s, topN, u64);
-    // cout<< "文本：\"" << s << "\"" << endl;
-    // cout << "关键词序列是: " << res << endl;
-    // cout<< "simhash值是: " << u64<<endl;
-
-    // const char * bin1 = "100010110110";
-    // const char * bin2 = "110001110011";
 
 	//将simhash值转为string
 	string bin;
 	Simhasher::toBinaryString(u64,bin);
 
-    // uint64_t u1, u2;
-    // u1 = Simhasher::binaryStringToUint64(bin1); 
-    // u2 = Simhasher::binaryStringToUint64(bin2); 
-    
 	if(0 == _simhash.size()){
 		//如果vector为空，则存放网页simhash
 		_simhash.push_back(bin);

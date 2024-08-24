@@ -4,6 +4,11 @@
         "cctype": "cpp",
         "regex": "cpp",
         "iosfwd": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "array": "cpp",
+        "istream": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp",
+        "variant": "cpp"
     }
 }
